@@ -1,27 +1,22 @@
 package com.fullfacing.keycloak4s.admin.client
 
-import java.util.UUID
-
-import cats.data.EitherT
-import cats.effect.Concurrent
-import cats.implicits._
 import com.fullfacing.keycloak4s.admin.client.KeycloakClient.Headers
 import com.fullfacing.keycloak4s.admin.client.implicits.{Anything, BodyMagnet}
 import com.fullfacing.keycloak4s.admin.handles.Logging
 import com.fullfacing.keycloak4s.admin.handles.Logging.logLeft
 import com.fullfacing.keycloak4s.core.models._
-import com.fullfacing.keycloak4s.core.serialization.JsonFormats.default
-import org.json4s.jackson.Serialization.read
+import sttp.capabilities
+import sttp.capabilities.zio.ZioStreams
 import sttp.client3.{Identity, RequestT, SttpBackend, asString, _}
-import sttp.model.{StatusCode, Uri}
 import sttp.model.Uri.QuerySegment.KeyValue
+import sttp.model.{StatusCode, Uri}
+import zio.Task
 
-import scala.collection.immutable.Seq
+import java.util.UUID
 import scala.reflect._
-import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.util.control.NonFatal
 
-class KeycloakClient[F[+_] : Concurrent](config: ConfigWithAuth)(implicit client: SttpBackend[F, Any]) extends TokenManager[F](config) {
+class KeycloakClient(config: ConfigWithAuth, client: SttpBackend[Task, ZioStreams with capabilities.WebSockets]) extends TokenManager(config, client) {
 
   val realm: String = config.realm
 
